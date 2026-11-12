@@ -93,6 +93,9 @@ nesting/
   export_dxf.py     # write nested sheets to DXF with real geometry
   plot.py           # matplotlib visualization
 tests/              # pytest suite
+[![Deschide aplicatia](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://laser-nesting-optimizer.streamlit.app)
+
+**Demo live:** https://laser-nesting-optimizer.streamlit.app
 .github/workflows/  # CI: tests on every push
 main.py             # full pipeline: import, nest, order, export, estimate
 ```
