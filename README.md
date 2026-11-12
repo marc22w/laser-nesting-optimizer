@@ -6,12 +6,6 @@
 
 **Demo live:** https://laser-nesting-optimizer.streamlit.app
 
-![tests](https://github.com/marc22w/laser-nesting-optimizer/actions/workflows/tests.yml/badge.svg)
-
-[![Deschide aplicatia](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://laser-nesting-optimizer.streamlit.app)
-
-**Demo live:** https://laser-nesting-optimizer.streamlit.app
-
 A Python tool that turns sheet-metal parts drawn in CAD into cut-ready laser files.
 Parts are read from DXF, nested across as many sheets as needed, ordered for cutting
 like a CAM system would, and exported as one DXF per sheet with a cutting-time estimate
