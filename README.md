@@ -1,7 +1,10 @@
 # Laser Nesting Optimizer
 
 ![tests](https://github.com/marc22w/laser-nesting-optimizer/actions/workflows/tests.yml/badge.svg)
-# Laser Nesting Optimizer
+
+[![Deschide aplicatia](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://laser-nesting-optimizer.streamlit.app)
+
+**Demo live:** https://laser-nesting-optimizer.streamlit.app
 
 ![tests](https://github.com/marc22w/laser-nesting-optimizer/actions/workflows/tests.yml/badge.svg)
 
