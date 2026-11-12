@@ -40,7 +40,7 @@ MaxRects packs the first sheet much denser, leaving a larger reusable offcut on 
 - **DXF export per sheet** on separate layers (`FOAIE` sheet outline, `TAIERE` cut
   contours, `ETICHETE` labels), in millimetres.
 - **Visualization** with matplotlib (rotated parts in orange).
-- **137 automated tests** (pytest): no part leaves the sheet, no overlaps, gap is
+- **143 automated tests** (pytest): no part leaves the sheet, no overlaps, gap is
   respected, every part is placed exactly once, unit conversion, DXF round-trip.
 
 ## DXF opened in Fusion
@@ -86,7 +86,7 @@ make_figures.py   # generates docs/comparison.png
 - [x] Multi-sheet nesting
 - [ ] Irregular (non-rectangular) part shapes with Shapely
 - [ ] Genetic algorithm to optimize part order and orientation
-- [ ] Export the real part geometry (holes, arcs) instead of bounding boxes
+- [x] Export the real part geometry (holes, arcs) instead of bounding boxes
 - [ ] Cutting-time estimate per sheet
 
 ## Tech stack

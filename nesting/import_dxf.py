@@ -3,6 +3,7 @@
 Numele fisierului da numele piesei; sufixul _xN da cantitatea
 (ex: flansa_x3.dxf -> 3 bucati). Dimensiunile sunt cele ale dreptunghiului
 care cuprinde toata geometria piesei (bounding box), convertite in mm.
+Piesa tine minte fisierul sursa, ca exportul sa poata copia geometria reala.
 """
 import re
 from pathlib import Path
@@ -24,14 +25,22 @@ def _factor_mm(doc):
     return units.conversion_factor(u, units.MM)
 
 
-def citeste_piesa(path):
-    """Intoarce (latime, inaltime) in mm pentru geometria din fisier."""
+def _analizeaza(path):
+    """Intoarce (latime_mm, inaltime_mm, origine, factor) pentru un fisier."""
     doc = ezdxf.readfile(str(path))
     ext = bbox.extents(doc.modelspace().query(GEOMETRIE))
     if not ext.has_data:
         raise ValueError(f"{path}: nu am gasit nicio geometrie")
     f = _factor_mm(doc)
-    return round(ext.size.x * f, 3), round(ext.size.y * f, 3)
+    w = round(ext.size.x * f, 3)
+    h = round(ext.size.y * f, 3)
+    return w, h, (ext.extmin.x, ext.extmin.y), f
+
+
+def citeste_piesa(path):
+    """Intoarce (latime, inaltime) in mm pentru geometria din fisier."""
+    w, h, _, _ = _analizeaza(path)
+    return w, h
 
 
 def citeste_folder(folder):
@@ -42,7 +51,8 @@ def citeste_folder(folder):
     for path in fisiere:
         m = _CANTITATE.match(path.stem)
         nume, n = (m["nume"], int(m["n"])) if m else (path.stem, 1)
-        w, h = citeste_piesa(path)
+        w, h, origine, f = _analizeaza(path)
         for i in range(n):
-            parts.append(Part(f"{nume}-{i + 1}" if n > 1 else nume, w, h))
+            parts.append(Part(f"{nume}-{i + 1}" if n > 1 else nume, w, h,
+                              source=str(path), origin=origine, scale=f))
     return parts
