@@ -4,6 +4,7 @@ from nesting.models import Part
 from nesting.packer import shelf_pack
 from nesting.maxrects import maxrects_pack
 from nesting.plot import plot_sheet
+from nesting.export_dxf import export_dxf
 
 SHEET_W, SHEET_H = 2000, 1000  # foaie standard 2000x1000 mm
 
@@ -20,5 +21,9 @@ for nume, algoritm in [("Shelf (rafturi)", shelf_pack),
     print(f"{nume:<16} plasate: {len(placed):>2}, neincapute: {len(skipped)}, "
           f"utilizare: {util:.1f}%")
     plot_sheet(placed, SHEET_W, SHEET_H, f"{nume} - {util:.1f}%")
+
+    if algoritm is maxrects_pack:
+        export_dxf(placed, SHEET_W, SHEET_H, "nesting_maxrects.dxf")
+        print("Salvat: nesting_maxrects.dxf")
 
 plt.show()  # deschide ambele ferestre
