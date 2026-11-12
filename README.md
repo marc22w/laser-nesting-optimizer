@@ -119,4 +119,4 @@ Python · ezdxf · matplotlib · pytest · GitHub Actions
 
 ## Author
 
-Marc Vintila, Precision Engineering student, Technical University of Cluj-Napoca
+sed -i '' 'Mechanical Engineering student, README.md
