@@ -6,6 +6,7 @@ from nesting.models import Part
 from nesting.packer import shelf_pack
 from nesting.maxrects import maxrects_pack
 from nesting.multisheet import nest_multi, utilizare
+from nesting.optimizer import nest_optim
 from nesting.plot import plot_sheet
 from nesting.export_dxf import export_dxf
 from nesting.import_dxf import citeste_folder
@@ -33,7 +34,8 @@ for nume, algoritm in [("Shelf (rafturi)", shelf_pack),
     print(f"{nume:<16} {len(foi)} foi  ({procente})")
 
 # 2. Rezultatul final cu MaxRects: desen, DXF si timp de taiere pe fiecare foaie
-foi, imposibile = nest_multi(parts, SHEET_W, SHEET_H, maxrects_pack)
+foi, imposibile, strategie = nest_optim(parts, SHEET_W, SHEET_H)
+print(f"\nCea mai buna strategie: sortare dupa {strategie[0]}, regula {strategie[1]}")
 FOLDER_IESIRE.mkdir(exist_ok=True)
 cache, timp_total = {}, 0.0
 print()

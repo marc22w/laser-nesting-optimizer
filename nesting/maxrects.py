@@ -1,9 +1,33 @@
 """MaxRects: tine evidenta tuturor dreptunghiurilor libere de pe foaie.
 
 Pentru fiecare piesa (si varianta ei rotita cu 90 de grade) se cauta spatiul
-liber in care se potriveste cel mai strans (Best Short Side Fit).
+liber cel mai potrivit, dupa una din regulile:
+  bssf - Best Short Side Fit: cea mai mica latura ramasa libera (implicit)
+  baf  - Best Area Fit: cea mai mica arie ramasa libera
+  bl   - Bottom-Left: cat mai jos, apoi cat mai la stanga
+Ordinea in care sunt luate piesele e data de `sortare` (vezi SORTARI).
 """
 from .models import Placement
+
+SORTARI = {
+    "arie":      lambda p: p.w * p.h,
+    "latura":    lambda p: max(p.w, p.h),
+    "perimetru": lambda p: p.w + p.h,
+    "latime":    lambda p: p.w,
+    "inaltime":  lambda p: p.h,
+}
+
+REGULI = ("bssf", "baf", "bl")
+
+
+def _scor(regula, fx, fy, fw, fh, W, H):
+    if regula == "bssf":
+        return (min(fw - W, fh - H), max(fw - W, fh - H))
+    if regula == "baf":
+        return (fw * fh - W * H, min(fw - W, fh - H))
+    if regula == "bl":
+        return (fy + H, fx)
+    raise ValueError(f"regula necunoscuta: {regula}")
 
 
 def _imparte(liber, ocupat):
@@ -43,14 +67,14 @@ def _curata(libere):
     return rezultat
 
 
-def maxrects_pack(parts, sheet_w, sheet_h, gap=2.0, allow_rotation=True):
+def maxrects_pack(parts, sheet_w, sheet_h, gap=2.0, allow_rotation=True,
+                  sortare="arie", regula="bssf"):
     # Truc pentru gap: fiecare piesa "ocupa" w+gap x h+gap, iar foaia e marita
     # cu gap. Asa intre doua piese ramane mereu cel putin gap.
     libere = [(0.0, 0.0, sheet_w + gap, sheet_h + gap)]
     placed, skipped = [], []
 
-    # piesele mari intai: e mai usor sa strecori piesele mici la final
-    for p in sorted(parts, key=lambda p: p.w * p.h, reverse=True):
+    for p in sorted(parts, key=SORTARI[sortare], reverse=True):
         variante = [(p.w, p.h, False)]
         if allow_rotation and p.w != p.h:
             variante.append((p.h, p.w, True))
@@ -60,7 +84,7 @@ def maxrects_pack(parts, sheet_w, sheet_h, gap=2.0, allow_rotation=True):
             W, H = w + gap, h + gap
             for fx, fy, fw, fh in libere:
                 if W <= fw and H <= fh:
-                    scor = (min(fw - W, fh - H), max(fw - W, fh - H))
+                    scor = _scor(regula, fx, fy, fw, fh, W, H)
                     if cea_mai_buna is None or scor < cea_mai_buna[0]:
                         cea_mai_buna = (scor, fx, fy, rot)
 
