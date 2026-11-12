@@ -1,8 +1,11 @@
 # Laser Nesting Optimizer
 
-A Python tool that arranges sheet-metal parts on laser-cutting sheets to minimize
-material waste. Parts are read from DXF files, nested across as many sheets as
-needed, and exported as one DXF per sheet, ready for CAD/CAM (tested in Autodesk Fusion).
+![tests](https://github.com/marc22w/laser-nesting-optimizer/actions/workflows/tests.yml/badge.svg)
+
+A Python tool that turns sheet-metal parts drawn in CAD into cut-ready laser files.
+Parts are read from DXF, nested across as many sheets as needed, ordered for cutting
+like a CAM system would, and exported as one DXF per sheet with a cutting-time estimate
+(tested in Autodesk Fusion).
 
 ![Shelf vs MaxRects comparison](docs/comparison.png)
 
@@ -21,27 +24,38 @@ covers, side panels):
 | Algorithm | Sheets used | Utilization per sheet |
 |---|---|---|
 | Shelf packing | 2 | 64.5%, 49.0% |
-| **MaxRects + 90° rotation** | **2** | **81.8%, 31.8%** |
+| MaxRects (single strategy) | 2 | 81.8%, 31.8% |
+| **Best of 15 strategies** | **2** | **84.2%, 29.2%** |
 
-MaxRects packs the first sheet much denser, leaving a larger reusable offcut on the second.
+**Cutting**: optimized cut order on the same job:
+
+| Sheet | Cut length | Pierces | Idle travel (optimized / naive) | Est. time |
+|---|---|---|---|---|
+| 1 | 20.3 m | 220 | **13.0 m** / 19.1 m (−32%) | ~8 min 37 s |
+| 2 | 7.6 m | 16 | **2.3 m** / 3.0 m (−24%) | ~2 min 41 s |
+
+Pierce count matters: on sheet 1, the 208 holes of the perforated plates add almost
+2 minutes of piercing alone.
 
 ## Features
 
 - **DXF import**: one file per part; quantity from the file name
-  (`flange_x3.dxf` = 3 pieces); bounding box computed from lines, arcs, circles,
+  (`flange_x3.dxf` = 3 pieces); bounding box from lines, arcs, circles,
   polylines and splines; automatic unit conversion (cm, inch → mm).
-- **Two nesting algorithms**
+- **Nesting**
   - *Shelf packing*: simple row-based baseline.
-  - *MaxRects (Best Short Side Fit)*: tracks every free rectangle on the sheet and
-    tries each part in both orientations, placing it where it fits tightest.
-- **Multi-sheet nesting**: when a sheet is full, remaining parts go to a new one;
-  parts that cannot fit even on an empty sheet are reported.
-- **Kerf / minimum gap** between parts, configurable.
-- **DXF export per sheet** on separate layers (`FOAIE` sheet outline, `TAIERE` cut
-  contours, `ETICHETE` labels), in millimetres.
-- **Visualization** with matplotlib (rotated parts in orange).
-- **150 automated tests** (pytest): no part leaves the sheet, no overlaps, gap is
-  respected, every part is placed exactly once, unit conversion, DXF round-trip.
+  - *MaxRects* with 90° rotation and three placement rules
+    (Best Short Side Fit, Best Area Fit, Bottom-Left).
+  - *Strategy search*: tries 5 sort orders × 3 rules and keeps the result with the
+    fewest sheets (ties broken by the largest reusable offcut).
+  - *Multi-sheet*: when a sheet is full, remaining parts go to a new one.
+- **Cut-ready DXF export** with the **real part geometry** (holes, arcs, L-shapes),
+  translated and rotated to the nested position, on separate layers
+  (`TAIERE` cut, `FOAIE` sheet, `ETICHETE` labels, `TRASEU` idle travel).
+- **Cut ordering** like a CAM post-processor: inner contours (holes) before the
+  outer contour of each part, nearest-neighbour sequencing to shorten idle travel.
+- **Cutting-time estimate** per sheet from total contour length and pierce count.
+- **188 automated tests** (pytest), run on every push with **GitHub Actions**.
 
 ## DXF opened in Fusion
 
@@ -62,36 +76,41 @@ python -m pytest -q       # runs the test suite
 
 To nest your own parts, export each one from Fusion as DXF
 (right-click sketch → *Save As DXF*) into the `piese/` folder, e.g. `bracket_x4.dxf`.
+Laser speed and pierce time are set at the top of `main.py`.
 
 ## Project structure
 
 ```
 nesting/
-  models.py       # Part and Placement data classes
-  packer.py       # shelf packing (baseline)
-  maxrects.py     # MaxRects algorithm with rotation
-  multisheet.py   # nesting across multiple sheets
-  import_dxf.py   # read parts from DXF files
-  export_dxf.py   # write nested sheets to DXF
-  plot.py         # matplotlib visualization
-tests/            # pytest suite
-main.py           # reads parts, compares algorithms, exports one DXF per sheet
-make_examples.py  # generates sample parts in piese/
-make_figures.py   # generates docs/comparison.png
+  models.py         # Part and Placement data classes
+  import_dxf.py     # read parts from DXF files
+  packer.py         # shelf packing (baseline)
+  maxrects.py       # MaxRects with rotation and 3 placement rules
+  optimizer.py      # search over 15 sort/rule strategies
+  multisheet.py     # nesting across multiple sheets
+  cut_order.py      # holes-first, nearest-neighbour cut sequencing
+  cutting_time.py   # cut length, pierce count, time estimate
+  export_dxf.py     # write nested sheets to DXF with real geometry
+  plot.py           # matplotlib visualization
+tests/              # pytest suite
+.github/workflows/  # CI: tests on every push
+main.py             # full pipeline: import, nest, order, export, estimate
 ```
 
 ## Roadmap
 
 - [x] Import parts from DXF files
 - [x] Multi-sheet nesting
-- [ ] Irregular (non-rectangular) part shapes with Shapely
-- [ ] Genetic algorithm to optimize part order and orientation
-- [x] Export the real part geometry (holes, arcs) instead of bounding boxes
+- [x] Export the real part geometry (holes, arcs)
 - [x] Cutting-time estimate per sheet (cut length + pierce count)
+- [x] Strategy search over sort orders and placement rules
+- [x] Cut ordering (holes first, nearest-neighbour)
+- [ ] Irregular (true-shape) nesting with Shapely
+- [ ] Command-line options (sheet size, gap, laser parameters)
 
 ## Tech stack
 
-Python · Shapely · ezdxf · matplotlib · pytest
+Python · ezdxf · matplotlib · pytest · GitHub Actions
 
 ## Author
 

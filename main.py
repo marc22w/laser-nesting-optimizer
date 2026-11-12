@@ -33,23 +33,27 @@ for nume, algoritm in [("Shelf (rafturi)", shelf_pack),
     procente = ", ".join(f"{utilizare(f, SHEET_W, SHEET_H):.1f}%" for f in foi)
     print(f"{nume:<16} {len(foi)} foi  ({procente})")
 
-# 2. Rezultatul final cu MaxRects: desen, DXF si timp de taiere pe fiecare foaie
+# 2. Cea mai buna strategie: desen, DXF ordonat si timp de taiere pe fiecare foaie
 foi, imposibile, strategie = nest_optim(parts, SHEET_W, SHEET_H)
-print(f"\nCea mai buna strategie: sortare dupa {strategie[0]}, regula {strategie[1]}")
+print(f"\nCea mai buna strategie: sortare dupa {strategie[0]}, regula {strategie[1]}\n")
 FOLDER_IESIRE.mkdir(exist_ok=True)
 cache, timp_total = {}, 0.0
-print()
 for i, foaie in enumerate(foi, start=1):
     util = utilizare(foaie, SHEET_W, SHEET_H)
     lungime, strapungeri, timp = estimare_foaie(foaie, LASER, cache)
     timp_total += timp
     fisier = FOLDER_IESIRE / f"foaia_{i}.dxf"
-    export_dxf(foaie, SHEET_W, SHEET_H, str(fisier))
+    stat = {}
+    export_dxf(foaie, SHEET_W, SHEET_H, str(fisier), traseu=True, statistici=stat)
+    economie = 100 * (1 - stat["deplasare_mm"] / stat["deplasare_naiva_mm"])
     print(f"Foaia {i}: {len(foaie):>2} piese, {util:.1f}%, "
           f"taiere {lungime / 1000:.1f} m, {strapungeri} strapungeri, "
           f"~{format_timp(timp)} -> {fisier}")
+    print(f"         deplasari in gol: {stat['deplasare_mm'] / 1000:.1f} m "
+          f"(fara optimizare {stat['deplasare_naiva_mm'] / 1000:.1f} m, "
+          f"-{economie:.0f}%)")
     plot_sheet(foaie, SHEET_W, SHEET_H,
-               f"MaxRects - foaia {i} din {len(foi)}: {util:.1f}%, ~{format_timp(timp)}")
+               f"Foaia {i} din {len(foi)}: {util:.1f}%, ~{format_timp(timp)}")
 
 print(f"\nTimp total estimat de taiere: ~{format_timp(timp_total)}")
 if imposibile:
