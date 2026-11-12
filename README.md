@@ -1,6 +1,13 @@
 # Laser Nesting Optimizer
 
 ![tests](https://github.com/marc22w/laser-nesting-optimizer/actions/workflows/tests.yml/badge.svg)
+# Laser Nesting Optimizer
+
+![tests](https://github.com/marc22w/laser-nesting-optimizer/actions/workflows/tests.yml/badge.svg)
+
+[![Deschide aplicatia](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://laser-nesting-optimizer.streamlit.app)
+
+**Demo live:** https://laser-nesting-optimizer.streamlit.app
 
 A Python tool that turns sheet-metal parts drawn in CAD into cut-ready laser files.
 Parts are read from DXF, nested across as many sheets as needed, ordered for cutting
@@ -54,8 +61,9 @@ Pierce count matters: on sheet 1, the 208 holes of the perforated plates add alm
   (`TAIERE` cut, `FOAIE` sheet, `ETICHETE` labels, `TRASEU` idle travel).
 - **Cut ordering** like a CAM post-processor: inner contours (holes) before the
   outer contour of each part, nearest-neighbour sequencing to shorten idle travel.
+- **Web app** (Streamlit): upload DXF parts, pick sheet format and material, download cut plans, CSV report, mass and cost estimate.
 - **Cutting-time estimate** per sheet from total contour length and pierce count.
-- **188 automated tests** (pytest), run on every push with **GitHub Actions**.
+- **193 automated tests** (pytest), run on every push with **GitHub Actions**.
 
 ## DXF opened in Fusion
 
@@ -86,9 +94,6 @@ nesting/
   import_dxf.py     # read parts from DXF files
   packer.py         # shelf packing (baseline)
   maxrects.py       # MaxRects with rotation and 3 placement rules
-  optimizer.py      # search over 15 sort/rule strategies
-  multisheet.py     # nesting across multiple sheets
-  cut_order.py      # holes-first, nearest-neighbour cut sequencing
   cutting_time.py   # cut length, pierce count, time estimate
   export_dxf.py     # write nested sheets to DXF with real geometry
   plot.py           # matplotlib visualization
